@@ -1,0 +1,219 @@
+---
+title: "Project 5 - Dashboard building and communication"
+author: "Yenus Ibrahim Ayalew"
+username: "@YenusAyalew"
+output:
+  flexdashboard::flex_dashboard:
+    theme: cosmo
+    orientation: columns
+    vertical_layout: fill
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(flexdashboard)
+library(leaflet)
+library(DT)
+library(plotly)
+library(ggplot2)
+library(fontawesome)
+library(htmltools)
+library(dplyr)
+
+```
+
+## Column {data-width="350"}
+
+### Top 50 and Bottom 50 Projects
+
+```{r}
+#Loading the data first
+wind_turbine <- read.csv("C:/Users/admin/Desktop/Hertie School/2. Introduction to DS/IDS-Assignment/assignment-4-YenusAyalew/wind_turbine_df.csv")
+
+
+#selecting *province*, *project name*, *capacity in megawatts*, and *number of turbines
+wind_df_slected <- wind_turbine %>% 
+  select(province_territory, project_name, total_project_capacity_mw,turbine_number_in_project)
+
+# selecting the top 50 and bottom 50 based on energy production
+
+#top 50
+
+top_50 <- wind_df_slected %>% 
+  arrange(desc(total_project_capacity_mw)) %>% 
+  slice(1:50)
+#bottom_50
+
+bottom_50 <- wind_df_slected %>% 
+  arrange(total_project_capacity_mw) %>% 
+  slice(1:50)
+
+# then let us combine the two projects using bindrows()
+
+top_50_botto_50 <- bind_rows(top_50, bottom_50)
+#then doing the reactive table
+Final_datatable <- datatable(top_50_botto_50, colnames = c(
+  "Province",
+  "Project Name",
+  "Total Project Capacity in MW",
+  "Number of Turbines"
+),
+options = list(
+  pageLength = 20,
+  autoWidth = TRUE,
+  scrollX = TRUE
+)
+)
+Final_datatable
+
+```
+
+## Column {data-width="450"}
+
+### Total Turbines by Province
+
+```{r}
+# b) Provide two interactive plots adhering to good practice of plot design using a
+# combination of `ggplot2` and `plotly::ggplotly()` presenting:
+# - Number of turbines by province and Number of turbines commissioned, by year
+
+# The total number of turbines in a project is character and it is presented like this: 
+# 95/123 so it has to be cleaned 
+
+# Extract the number before the slash and convert to numeric
+wind_df_selected <- wind_turbine %>%
+  mutate(
+    turbines_clean = str_extract(turbine_number_in_project, "^[0-9]+"),
+    turbines_clean = as.numeric(turbines_clean)
+  )
+
+# Total turbines by province
+turbines_by_province <- wind_df_selected %>%
+  group_by(province_territory) %>%
+  summarise(
+    total_turbines = sum(turbines_clean, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%  
+  arrange(desc(total_turbines))
+
+plot1 <- ggplot(turbines_by_province, aes(x = reorder(province_territory, -total_turbines), y = total_turbines)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  labs(title = "Total Number of Turbines by Province",
+       x = "Province/Territory",
+       y = "Total Turbines") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+ggplotly(plot1)
+
+```
+
+### Total Turbines by commisioned Year
+
+```{r}
+#1B number of turbine commisioned by year
+
+# Extract turbines number and convert to numeric
+wind_clean_1b <- wind_turbine %>%
+  mutate(
+    turbines_clean = as.numeric(str_extract(turbine_number_in_project, "^[0-9]+")),
+    year_commissioned = as.numeric(commissioning)
+  )
+
+# Total turbines by year
+turbines_by_year <- wind_clean_1b %>%
+  group_by(year_commissioned) %>%
+  summarise(total_turbines = sum(turbines_clean, na.rm = TRUE)) %>%
+  arrange(year_commissioned)
+
+# Plot
+plot2 <- ggplot(turbines_by_year,
+                aes(x = year_commissioned,
+                    y = total_turbines,
+                    text = paste(
+                      "Year: ", year_commissioned,
+                      "<br>Turbines: ", total_turbines
+                    ))) +
+  geom_col(fill = "darkorange") +
+  labs(
+    title = "Number of Turbines Commissioned by Year",
+    x = "Year",
+    y = "Total Turbines"
+  ) +
+  theme_minimal()
+
+ggplotly(plot2, tooltip = "text")
+
+```
+
+## Column {data-width="400"}
+
+### Interactive map for Saskatchewan Turbines
+
+```{r}
+# filtering turbines in Saskatchewan
+sk_trubines <- wind_turbine %>%
+  filter(province_territory == "Saskatchewan")
+## converting data types and cleaning the capacity
+sk_turbines2 <- sk_trubines %>% 
+  mutate(
+    turbines_clean = as.numeric(str_extract(turbine_number_in_project, "^[0-9]+")),
+    capacity_kw = as.numeric(turbine_rated_capacity_k_w),
+    year_commissioned = as.numeric(commissioning),
+    
+    # Latitude & longitude are already numeric
+    latitude = as.numeric(latitude),
+    longitude = as.numeric(longitude)
+  ) %>% 
+  filter(
+    !is.na(capacity_kw),
+    !is.na(year_commissioned))
+# building the popup content and the function 
+
+popup_content <- function(id, cap, model, manufacturer, year) {
+  sprintf(
+    "<div class='alert-info pad-box'>
+    <b>%s</b><br><br>
+    This turbine has a capacity of %s kW.<br>
+    It is a %s manufactured by %s.<br>
+    It was commissioned in %s.
+    </div>",
+    id, cap, model, manufacturer, year
+  )
+}
+
+# Add popup column
+sk_turbines2$popup <- mapply(
+  popup_content,
+  sk_turbines2$turbine_identifier,
+  sk_turbines2$capacity_kw,
+  sk_turbines2$model,
+  sk_turbines2$manufacturer,
+  sk_turbines2$year_commissioned
+)
+
+# Create red bolt icon
+bolt_icon <- awesomeIcons(
+  icon = "bolt",
+  library = "fa",
+  iconColor = "white",
+  markerColor = "red"
+)
+leaflet(sk_turbines2) %>%
+  addProviderTiles("CartoDB.Positron") %>%
+  addCircleMarkers(
+    lng = ~longitude,
+    lat = ~latitude,
+    radius = 6,
+    color = "red",
+    stroke = FALSE,
+    fillOpacity = 0.8,
+    label = ~project_name,
+    popup = ~popup
+  ) %>%
+  setView(
+    lng = mean(sk_turbines2$longitude, na.rm = TRUE),
+    lat = mean(sk_turbines2$latitude, na.rm = TRUE),
+    zoom = 6
+  )
+```

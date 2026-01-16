@@ -1,0 +1,116 @@
+---
+title: "Project 5 - Dashboard building"
+author: "Yenus Ibrahim Ayalew"
+date: "`r format(Sys.time(), '%B %d, %Y | %H:%M:%S | %Z')`"
+output:
+  html_document:
+    code_folding: show
+    df_print: paged
+    highlight: tango
+    number_sections: no
+    theme: cosmo
+    toc: no
+---
+
+<style>
+div.answer {background-color:#f3f0ff; border-radius: 5px; padding: 20px;}
+
+.pad-box{
+padding: 1em;
+background-color: #d3d6db;
+color: #000000;
+margin-left: 15em;
+margin-right: 15em;
+}
+
+</style>
+
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      eval = TRUE,
+                      error = FALSE,
+                      message = FALSE,
+                      warning = FALSE,
+                      comment = NA)
+```
+
+<!-- Do not forget to input your Github username in the YAML configuration up there --> 
+
+```{r, echo = F}
+# load packages here if necessary
+pacman::p_load(fontawesome)
+```
+
+<br>
+
+***
+
+### Task 1 - Data communication with flexdashboard
+
+The file `wind_turbine_df.csv` contains data from the [Canadian Wind Turbine Database, 2024](https://open.canada.ca/data/en/dataset/79fdad93-9025-49ad-ba16-c26d718cc070). To work on the following tasks, please use `flexdashboard_template.Rmd`.
+
+a) Create an interactive table that reports the *province*, *project name*, *capacity in megawatts*, and *number of turbines* of the 50 projects with the most and least total capacity of energy production (i.e., 100 projects). Use the `DT` package to render an interactive table!
+
+b) Provide two interactive plots adhering to good practice of plot design using a combination of `ggplot2` and `plotly::ggplotly()` presenting:
+
+    - Number of turbines, by province
+    - Number of turbines commissioned, by year
+  
+**&emsp;&emsp;&emsp;&emsp;&emsp;^The pop-ups in the plots should present the province and year, respectively, as well as the number of turbines.**
+  
+
+c) Create an interactive `leaflet` map, mapping the individual wind turbines in the province of Saskatchewan, with the following features:
+
+    - the markers should be <b style='color:#ff0000'>red</b>
+    - the markers should have a `bolt` icon (i.e., `r fontawesome::fa("bolt")`)
+    - the name of the project should be displayed when the user hovers over the marker
+    - an individualized message for each turbine should be displayed when clicking on their marker presenting their identifier, capacity, model, manufacturer, and year of commissioning, as such:
+
+
+:::{.alert-info .pad-box}  
+**COW1**
+
+This turbine has a capacity of 800 kW. It is a E53-800 manufactured by Enercon. It was commissioned in 2013.
+:::
+
+<br>
+
+d) Compile your `flexdashboard` dashboard by populating it with the output you created, arranging the panels as follows: Table a) in column 1, the interactive plots from b) in column 2, and interactive map from c) in column 3. Your dashboard should adhere to principles of good dashboard design. Knit and save the result as `flexdashboard.html` in your assignment repository.
+
+<br>
+
+***
+
+### Task 2 - Evaluating a dashboard
+
+Look for a dashboard that is openly accessible online (but none of those we discussed in class). Provide a link together with a screenshot and a brief description of what the dashboard offers in terms information and what data it is built on. Then, provide three suggestions of how the dashboard could be improved from a design perspective.
+
+<div class = "answer"> 
+I am going to comment on Africa CDC website which we were using to monitor COVID-19 cases in real time from all African member states. The link is: https://africacdc.org/covid-19/.
+
+The dashboard offers displays: 
+1. Shows real time cases, tests and deaths so far.  
+2. It also has interactive map of African countries.  
+3. When hover over specific country it gives background information about the country, number of cases, tests, deaths, and others.  
+4. The circles denoting cases differ based on the case prevalence, death, recovery or test whatever they displayed.  
+5. In the right bottom corner, it also shows case prevalence for the 4 regions of Africa.
+
+The screenshots for the dashboard:
+
+```{r echo=FALSE, out.width="80%"}
+knitr::include_graphics(c(
+  "C:/Users/admin/Desktop/Hertie School/2. Introduction to DS/IDS-Assignment/assignment-4-YenusAyalew/Dashboard1.png",
+  "C:/Users/admin/Desktop/Hertie School/2. Introduction to DS/IDS-Assignment/assignment-4-YenusAyalew/Dahboard2.png",
+  "C:/Users/admin/Desktop/Hertie School/2. Introduction to DS/IDS-Assignment/assignment-4-YenusAyalew/Dashboard3.jpg"
+))
+```
+
+<div class = "answer"> 
+Regarding the suggestions:
+1. The dashboard do not display vaccination information which is important to know.  
+2. They could add country level contextual information whether it is worsening or decreasing.  
+3. It is not responsive for mobiles. It could have been done in such way that it could have been responsive for all devices (See image 3).  
+4. Time slider was great to see the trend if it was included. 
+</div>
+
