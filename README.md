@@ -7,7 +7,7 @@ This is **my 5th R project**, focused on building **interactive dashboards** usi
 
 ## Project Overview
 
-For this project, I worked with data from the **Canadian Wind Turbine Database (2024)**, which includes information about turbine projects across all provinces, such as project name, total capacity, number of turbines, model, manufacturer, commissioning year, and geographical coordinates.  
+For this project, I worked with data from the **[Canadian Wind Turbine Database (2024)](https://open.canada.ca/data/en/dataset/79fdad93-9025-49ad-ba16-c26d718cc070)**, which includes information about turbine projects across all provinces, such as project name, total capacity, number of turbines, model, manufacturer, commissioning year, and geographical coordinates.  
 
 The aim was to create a dashboard that presents the data clearly and allows users to interact with it to explore insights about wind energy projects.
 
